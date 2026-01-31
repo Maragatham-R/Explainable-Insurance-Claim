@@ -13,8 +13,9 @@ st.set_page_config(
 
 st.title("Insurance Claim Prediction with SHAP")
 
-# ---------------- Load Model ----------------
+# ---------------- Load Model & Encoder ----------------
 model = joblib.load("insurances.pkl")
+encoder = joblib.load("encoder.pkl")
 
 # ---------------- Sidebar Inputs ----------------
 st.sidebar.header("User Inputs")
@@ -41,47 +42,21 @@ job_title = st.sidebar.selectbox(
     ["Actor", "Engineer", "Academician", "Chef", "HomeMakers"]
 )
 
-# ---------------- Encoding ----------------
-sex_map = {"male": 1, "female": 0}
-hereditary_map = {
-    "NoDisease": 0,
-    "Epilepsy": 1,
-    "Diabetes": 2,
-    "HeartDisease": 3,
-    "Cancer": 4
-}
-
-city_map = {
-    "NewYork": 0,
-    "Boston": 1,
-    "Phildelphia": 2,
-    "Pittsburg": 3,
-    "Buffalo": 4
-}
-
-job_map = {
-    "Actor": 0,
-    "Engineer": 1,
-    "Academician": 2,
-    "Chef": 3,
-    "HomeMakers": 4
-}
-
-# ---------------- Input Data ----------------
+# ---------------- Input Data (RAW - No Encoding Here) ----------------
 user_input = pd.DataFrame(
     [[
         age,
-        sex_map[sex],
+        sex,
         weight,
         bmi,
-        hereditary_map[hereditary],
+        hereditary,
         no_of_dependents,
         smoker,
-        city_map[city],
+        city,
         bloodpressure,
         diabetes,
         regular_ex,
-        job_map[job_title]
+        job_title
     ]],
     columns=[
         "age",
@@ -102,8 +77,12 @@ user_input = pd.DataFrame(
 # ---------------- Prediction ----------------
 if st.sidebar.button("Predict"):
 
-    prediction = model.predict(user_input)[0]
-    probability = model.predict_proba(user_input)[0][1]
+    # Encode input
+    X_enc = encoder.transform(user_input)
+
+    # Predict
+    prediction = model.predict(X_enc)[0]
+    probability = model.predict_proba(X_enc)[0][1]
 
     if prediction == 1:
         st.error(f"Claim Likely (Probability: {probability:.2f})")
@@ -112,7 +91,7 @@ if st.sidebar.button("Predict"):
 
     # ---------------- SHAP ----------------
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(user_input)
+    shap_values = explainer.shap_values(X_enc)
 
     # Handle classifier output
     if isinstance(shap_values, list):
@@ -122,9 +101,9 @@ if st.sidebar.button("Predict"):
 
     shap_vals = np.array(shap_vals).flatten()
 
-    # Feature Names
-    if hasattr(model, "feature_names_in_"):
-        feature_names = list(model.feature_names_in_)
+    # Feature Names from Encoder
+    if hasattr(encoder, "get_feature_names_out"):
+        feature_names = encoder.get_feature_names_out()
     else:
         feature_names = [f"Feature {i}" for i in range(len(shap_vals))]
 
