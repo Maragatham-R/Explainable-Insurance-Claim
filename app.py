@@ -14,7 +14,7 @@ st.set_page_config(
 st.title("Insurance Claim Prediction with SHAP")
 
 # ---------------- Load Model ----------------
-model = joblib.load("insurance.pkl")
+model = joblib.load("insurances.pkl")
 
 # ---------------- Sidebar Inputs ----------------
 st.sidebar.header("User Inputs")
