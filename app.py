@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import shap
+#import shap
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -77,64 +77,4 @@ if st.sidebar.button("Predict Claim"):
     else:
         st.success(f"No Claim (Probability: {probability:.2f})")
 
-    # ---------------- SHAP ----------------
-    st.subheader("SHAP Explanation")
-
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(user_input)
-
-    # Handle binary classifier
-    if isinstance(shap_values, list):
-        shap_vals = shap_values[1][0]
-    else:
-        shap_vals = shap_values[0]
-
-    shap_vals = np.array(shap_vals).flatten()
-
-    # Feature names
-    if hasattr(model, "feature_names_in_"):
-        feature_names = list(model.feature_names_in_)
-    else:
-        feature_names = user_input.columns.tolist()
-
-    # Force same length
-    min_len = min(len(feature_names), len(shap_vals))
-    shap_vals = shap_vals[:min_len]
-    feature_names = feature_names[:min_len]
-
-    # Sort by importance
-    order = np.argsort(np.abs(shap_vals))
-
-    TOP_K = min(8, len(order))
-    order = order[-TOP_K:]
-
-    # ---------------- PLOT ----------------
-    fig, ax = plt.subplots(figsize=(9, 5))
-
-    ax.barh(
-        np.array(feature_names)[order],
-        shap_vals[order]
-    )
-
-    ax.set_xlabel("SHAP Value (Impact on Prediction)")
-    ax.set_title("Top Feature Contributions")
-
-    st.pyplot(fig)
-
-    # ---------------- INFO ----------------
-    st.markdown("""
-    ### 🔍 How to Read This SHAP Chart
-
-    - **Positive Value (+)** → Increases claim risk  
-    - **Negative Value (–)** → Reduces claim risk  
-
-    ### 📊 Interpretation
-    - Longer bars = More influence
-    - Health conditions and habits strongly affect claim probability
-    """)
-
-    st.info(
-        "This prediction is based on health, lifestyle, and medical history. "
-        "Higher probability means higher risk of insurance claim."
-    )
-
+    
