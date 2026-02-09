@@ -64,35 +64,34 @@ user_input = pd.DataFrame(
         "regular_ex"
     ]
 )
+shap_vals = np.array(shap_vals).flatten()
 
-if st.sidebar.button("Predict Claim"):
+# -------- FEATURE INFLUENCE PIE CHART --------
+st.subheader("Feature Influence Distribution")
 
-    prediction = model.predict(user_input)[0]
-    probability = model.predict_proba(user_input)[0][1]
+# Use absolute SHAP values
+abs_shap = np.abs(shap_vals)
 
-    if prediction == 1:
-        st.error(f"Claim Likely (Probability: {probability:.2f})")
-    else:
-        st.success(f"No Claim (Probability: {probability:.2f})")
+# Convert to percentage
+percentages = (abs_shap / abs_shap.sum()) * 100
 
-    # -------- PIE CHART --------
-    st.subheader("Prediction Probability Distribution")
+# Take Top 6 features only (for clarity)
+top_n = min(6, len(percentages))
+top_idx = np.argsort(percentages)[-top_n:]
 
-    labels = ["No Claim", "Claim"]
-    sizes = [1 - probability, probability]
+pie_labels = np.array(feature_names)[top_idx]
+pie_sizes = percentages[top_idx]
 
-    fig2, ax2 = plt.subplots()
+fig3, ax3 = plt.subplots()
 
-    ax2.pie(
-        sizes,
-        labels=labels,
-        autopct='%1.1f%%',
-        startangle=90
-    )
+ax3.pie(
+    pie_sizes,
+    labels=pie_labels,
+    autopct='%1.1f%%',
+    startangle=90
+)
 
-    ax2.axis('equal')
-    ax2.set_title("Claim vs No Claim Probability")
+ax3.axis('equal')
+ax3.set_title("Feature Influence on Prediction")
 
-    st.pyplot(fig2)
-
-    # -------- SHAP CODE BELOW --------
+st.pyplot(fig3)
