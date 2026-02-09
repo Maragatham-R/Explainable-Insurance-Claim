@@ -65,35 +65,34 @@ user_input = pd.DataFrame(
     ]
 )
 
-# ---------------- PREDICTION ----------------
 if st.sidebar.button("Predict Claim"):
 
     prediction = model.predict(user_input)[0]
     probability = model.predict_proba(user_input)[0][1]
 
-    # Result
     if prediction == 1:
         st.error(f"Claim Likely (Probability: {probability:.2f})")
     else:
         st.success(f"No Claim (Probability: {probability:.2f})")
 
-# ---------------- PIE CHART ----------------
-st.subheader("Prediction Probability Distribution")
+    # -------- PIE CHART --------
+    st.subheader("Prediction Probability Distribution")
 
-labels = ["No Claim", "Claim"]
-sizes = [1 - probability, probability]
+    labels = ["No Claim", "Claim"]
+    sizes = [1 - probability, probability]
 
-fig2, ax2 = plt.subplots()
+    fig2, ax2 = plt.subplots()
 
-ax2.pie(
-    sizes,
-    labels=labels,
-    autopct='%1.1f%%',
-    startangle=90
-)
+    ax2.pie(
+        sizes,
+        labels=labels,
+        autopct='%1.1f%%',
+        startangle=90
+    )
 
-ax2.axis('equal')  # Makes pie circular
-ax2.set_title("Claim vs No Claim Probability")
+    ax2.axis('equal')
+    ax2.set_title("Claim vs No Claim Probability")
 
-st.pyplot(fig2)
- 
+    st.pyplot(fig2)
+
+    # -------- SHAP CODE BELOW --------
