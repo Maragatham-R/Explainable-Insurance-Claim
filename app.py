@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-#import shap
+import shap
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -77,4 +77,23 @@ if st.sidebar.button("Predict Claim"):
     else:
         st.success(f"No Claim (Probability: {probability:.2f})")
 
-    
+# ---------------- PIE CHART ----------------
+st.subheader("Prediction Probability Distribution")
+
+labels = ["No Claim", "Claim"]
+sizes = [1 - probability, probability]
+
+fig2, ax2 = plt.subplots()
+
+ax2.pie(
+    sizes,
+    labels=labels,
+    autopct='%1.1f%%',
+    startangle=90
+)
+
+ax2.axis('equal')  # Makes pie circular
+ax2.set_title("Claim vs No Claim Probability")
+
+st.pyplot(fig2)
+ 
