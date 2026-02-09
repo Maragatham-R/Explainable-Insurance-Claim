@@ -65,38 +65,10 @@ user_input = pd.DataFrame(
     ]
 )
 
-# -------- FEATURE INFLUENCE PIE CHART --------
-# ---------------- SHAP ----------------
-st.subheader("SHAP Explanation")
-
-explainer = shap.TreeExplainer(model)
-shap_values = explainer.shap_values(user_input)
-
-# Handle binary classifier output
-if isinstance(shap_values, list):
-    shap_vals = shap_values[1][0]
-else:
-    shap_vals = shap_values[0]
-
-# Convert to numpy
-shap_vals = np.array(shap_vals).flatten()
-
-# Feature names
-if hasattr(model, "feature_names_in_"):
-    feature_names = list(model.feature_names_in_)
-else:
-    feature_names = user_input.columns.tolist()
-
-# Match lengths
-min_len = min(len(feature_names), len(shap_vals))
-shap_vals = shap_vals[:min_len]
-feature_names = feature_names[:min_len]
-
 # ---------------- FEATURE INFLUENCE PIE ----------------
 st.subheader("Feature Influence Distribution")
 
 abs_shap = np.abs(shap_vals)
-
 percentages = (abs_shap / abs_shap.sum()) * 100
 
 top_n = min(6, len(percentages))
@@ -105,37 +77,25 @@ top_idx = np.argsort(percentages)[-top_n:]
 pie_labels = np.array(feature_names)[top_idx]
 pie_sizes = percentages[top_idx]
 
-fig3, ax3 = plt.subplots()
+# Smaller figure
+fig3, ax3 = plt.subplots(figsize=(5, 5))
 
-ax3.pie(
+wedges, texts, autotexts = ax3.pie(
     pie_sizes,
     labels=pie_labels,
     autopct='%1.1f%%',
-    startangle=90
+    startangle=90,
+    textprops={'fontsize': 9},     # Smaller text
+    pctdistance=0.7,               # Move % inside
+    labeldistance=1.05             # Move labels slightly out
 )
+
+# Improve readability
+for autotext in autotexts:
+    autotext.set_color('white')
+    autotext.set_fontsize(8)
 
 ax3.axis('equal')
-ax3.set_title("Feature Influence on Prediction")
+ax3.set_title("Feature Influence", fontsize=12)
 
 st.pyplot(fig3)
-
-# ---------------- BAR CHART ----------------
-order = np.argsort(np.abs(shap_vals))
-TOP_K = min(8, len(order))
-order = order[-TOP_K:]
-
-fig, ax = plt.subplots(figsize=(9, 5))
-
-ax.barh(
-    np.array(feature_names)[order],
-    shap_vals[order]
-)
-
-ax.set_xlabel("SHAP Value (Impact)")
-ax.set_title("Top Feature Contributions")
-
-st.pyplot(fig)
-
-st.info(
-    "Positive SHAP increases claim risk. Negative SHAP reduces claim risk."
-)
