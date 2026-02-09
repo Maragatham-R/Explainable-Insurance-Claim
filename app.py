@@ -64,18 +64,41 @@ user_input = pd.DataFrame(
         "regular_ex"
     ]
 )
-shap_vals = np.array(shap_vals).flatten()
 
 # -------- FEATURE INFLUENCE PIE CHART --------
+# ---------------- SHAP ----------------
+st.subheader("SHAP Explanation")
+
+explainer = shap.TreeExplainer(model)
+shap_values = explainer.shap_values(user_input)
+
+# Handle binary classifier output
+if isinstance(shap_values, list):
+    shap_vals = shap_values[1][0]
+else:
+    shap_vals = shap_values[0]
+
+# Convert to numpy
+shap_vals = np.array(shap_vals).flatten()
+
+# Feature names
+if hasattr(model, "feature_names_in_"):
+    feature_names = list(model.feature_names_in_)
+else:
+    feature_names = user_input.columns.tolist()
+
+# Match lengths
+min_len = min(len(feature_names), len(shap_vals))
+shap_vals = shap_vals[:min_len]
+feature_names = feature_names[:min_len]
+
+# ---------------- FEATURE INFLUENCE PIE ----------------
 st.subheader("Feature Influence Distribution")
 
-# Use absolute SHAP values
 abs_shap = np.abs(shap_vals)
 
-# Convert to percentage
 percentages = (abs_shap / abs_shap.sum()) * 100
 
-# Take Top 6 features only (for clarity)
 top_n = min(6, len(percentages))
 top_idx = np.argsort(percentages)[-top_n:]
 
@@ -95,3 +118,24 @@ ax3.axis('equal')
 ax3.set_title("Feature Influence on Prediction")
 
 st.pyplot(fig3)
+
+# ---------------- BAR CHART ----------------
+order = np.argsort(np.abs(shap_vals))
+TOP_K = min(8, len(order))
+order = order[-TOP_K:]
+
+fig, ax = plt.subplots(figsize=(9, 5))
+
+ax.barh(
+    np.array(feature_names)[order],
+    shap_vals[order]
+)
+
+ax.set_xlabel("SHAP Value (Impact)")
+ax.set_title("Top Feature Contributions")
+
+st.pyplot(fig)
+
+st.info(
+    "Positive SHAP increases claim risk. Negative SHAP reduces claim risk."
+)
