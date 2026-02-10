@@ -30,7 +30,7 @@ smoker = st.sidebar.selectbox("Smoker", ["No", "Yes"])
 disease = st.sidebar.selectbox("Disease History", ["No", "Yes"])
 diabetes = st.sidebar.selectbox("Diabetes", ["No", "Yes"])
 
-BP = st.sidebar.slider("Blood Pressure", 60, 200, 80)
+bloodpressure = st.sidebar.slider("Blood Pressure", 60, 200, 80)
 
 regular_ex = st.sidebar.selectbox("Regular Exercise", ["No", "Yes"])
 
@@ -51,7 +51,7 @@ user_input = pd.DataFrame(
         gender_val,
         smoker_val,
         disease_val,
-        BP,
+        bloodpressure,
         diabetes_val,
         regular_ex_val
     ]],
@@ -61,7 +61,7 @@ user_input = pd.DataFrame(
         "gender",
         "smoker",
         "Disease",
-        "BP",
+        "bloodpressure",
         "diabetes",
         "regular_ex"
     ]
