@@ -99,3 +99,5 @@ ax3.axis('equal')
 ax3.set_title("Feature Influence", fontsize=12)
 
 st.pyplot(fig3)
+
+st.pyplot(fig3)
