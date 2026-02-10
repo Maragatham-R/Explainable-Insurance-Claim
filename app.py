@@ -65,39 +65,42 @@ user_input = pd.DataFrame(
     ]
 )
 
-# ---------------- FEATURE INFLUENCE PIE ----------------
-st.subheader("Feature Influence Distribution")
+try:
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(user_input)
 
-abs_shap = np.abs(shap_vals)
-percentages = (abs_shap / abs_shap.sum()) * 100
+        # For classifier
+        if isinstance(shap_values, list):
+            shap_vals = shap_values[1][0]
+        else:
+            shap_vals = shap_values[0]
 
-top_n = min(6, len(percentages))
-top_idx = np.argsort(percentages)[-top_n:]
+        shap_vals = np.array(shap_vals).flatten()
 
-pie_labels = np.array(feature_names)[top_idx]
-pie_sizes = percentages[top_idx]
+        # Absolute values
+        abs_shap = np.abs(shap_vals)
 
-# Smaller figure
-fig3, ax3 = plt.subplots(figsize=(5, 5))
+        # Convert to percentage
+        percent = (abs_shap / abs_shap.sum()) * 100
 
-wedges, texts, autotexts = ax3.pie(
-    pie_sizes,
-    labels=pie_labels,
-    autopct='%1.1f%%',
-    startangle=90,
-    textprops={'fontsize': 9},     # Smaller text
-    pctdistance=0.7,               # Move % inside
-    labeldistance=1.05             # Move labels slightly out
-)
+        # -----------------------------
+        # Pie Chart
+        # -----------------------------
 
-# Improve readability
-for autotext in autotexts:
-    autotext.set_color('white')
-    autotext.set_fontsize(8)
+        fig, ax = plt.subplots(figsize=(5,5))
 
-ax3.axis('equal')
-ax3.set_title("Feature Influence", fontsize=12)
+        ax.pie(
+            percent,
+            labels=features,
+            autopct='%1.1f%%',
+            startangle=90,
+            textprops={'fontsize':10}
+        )
 
-st.pyplot(fig3)
+        ax.set_title("Feature Influence on Prediction", fontsize=12)
 
-st.pyplot(fig3)
+        st.pyplot(fig)
+
+    except Exception as e:
+        st.error("SHAP calculation failed")
+        st.write(e)
